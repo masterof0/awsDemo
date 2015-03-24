@@ -11,7 +11,7 @@ Help is available for all scripts. To display help add the --help flag
  
  
 Getting Started
-To get started, make sure you update the environment variables in .bashrc and .aws/credentials. After updating your key and secret, reload your machine
+To get started, make sure you update the environment variables in .bashrc. After updating your key and secret, reload your machine
 
 Next, you will run the launchDefensics.py script. There are two other positional parameters that will need to be provided for this script. You will have to provide your admin name (i.e. cjohnson, jknudsen, etc) and the name you would like to give the machine (i.e. defensics, arrisTraining, etc). The output of this command will be a reservation id which  will be used by the remaining scripts to manage the instances 
 
