@@ -46,5 +46,6 @@ if args.name:
     if i.tags['Name'].startswith(args.name + ":") and i.tags['Admin'] == args.admin:
       conn.terminate_instances([str(i.id)], dry_run=args.dry_run)
       conn.delete_key_pair(args.name)
+      os.remove(str(args.res_id))
       os.remove('.aws/' + args.name + '.pem')
       print str(i.tags['Name']) + ' has been terminated'
