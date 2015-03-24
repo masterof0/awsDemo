@@ -1,0 +1,21 @@
+We have created an environment within AWS to help with managing/deploying instances in AWS.
+
+The scripts/env that are a part of this environment are:  
+1. launchDefensics.py - launch Defensics instances in AWS
+2. getInfo.py - get information related to launched instances  
+3. terminateDefensics.py - remove Defensics instances   
+4. env variables - there are two environment variables defined in .bashrc that are used for your credentials when executing the scripts. If you prefer, you can leave these unset and provide the username/password via the command line using the -O and -W flags. The flags can also be used to override the environment variables 
+5. .aws.log - log file for some basic troubleshooting information 
+ 
+Help is available for all scripts. To display help add the --help flag
+ 
+ 
+Getting Started
+To get started, make sure you update the environment variables in .bashrc and .aws/credentials. After updating your key and secret, reload your machine
+
+Next, you will run the launchDefensics.py script. There are two other positional parameters that will need to be provided for this script. You will have to provide your admin name (i.e. cjohnson, jknudsen, etc) and the name you would like to give the machine (i.e. defensics, arrisTraining, etc). The output of this command will be a reservation id which  will be used by the remaining scripts to manage the instances 
+
+Once the script has run and returned your reservation id, it will take about 20 minutes for all of the sysprep scripts to run. To get the details regarding the machines (hostname, instance id, public ip, and password) you will need to run the getInfo script and provide the reservation id and name you used to launch the machines. 
+
+It is also important to note that anytime an instance is stopped and started, it will pull a new public ip address and this script will need to be run to gather that information
+
