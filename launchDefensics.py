@@ -17,7 +17,7 @@ parser.add_argument('-D', '--dry-run', action='store_true', default=False, help=
 parser.add_argument('admin', help='username that will administer instances (i.e. cjohnson)')
 parser.add_argument('name', help='Base name of machine')
 args = parser.parse_args()
-print args
+#print args
 
 reservation, instances, superdemoReservation, superdemoInstances = ([] for l in range (4))
 
