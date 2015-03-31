@@ -6,6 +6,7 @@ import time
 import datetime
 import os
 import sys
+import sqlite3
 from pprint import pprint
 
 parser = argparse.ArgumentParser(description="Build defensics workstations for training, or demonstrations, in AWS")
@@ -19,36 +20,54 @@ parser.add_argument('name', help='Base name of machine')
 args = parser.parse_args()
 #print args
 
-reservation, instances, superdemoReservation, superdemoInstances = ([] for l in range (4))
+reservation, instances = ([] for l in range (2))
+awsDir = "/vagrant/.aws"
+if not os.path.isdir(awsDir):
+  os.makedirs(awsDir)
 
+#Set up connection to AWS
 if args.aws_access_key:
   conn = boto.ec2.connect_to_region('us-west-1',aws_access_key_id=args.aws_access_key,aws_secret_access_key=args.aws_secret_key)
 else:
   conn = boto.ec2.connect_to_region('us-west-1',aws_access_key_id=os.environ['AWS_ACCESS_KEY'],aws_secret_access_key=os.environ['AWS_SECRET_KEY'])
 
+#Create key pair
 if conn.get_key_pair(str(args.name)):
-  if not os.path.exists('.aws/' + str(args.name) + '.pem'):
+  if not os.path.exists(awsDir + str(args.name) + '.pem'):
     sys.exit("This name is already taken. Please launch again with new name")
 else:
     key = conn.create_key_pair(str(args.name))
-    key.save('.aws/')
+    key.save(awsDir)
 
+#Create reservation
 reservation = conn.run_instances('ami-ff21c0bb',max_count=args.num, key_name=args.name, security_groups=['sg_training'], instance_type=args.instance, dry_run=args.dry_run)
 instances = reservation.instances
 print "Your reservation id for this defensics request is: " + str(reservation.id)
 print "Please note it may take up to 20 minutes for the images to launch and be fully available"
 print "If you need information on your reservation, please check the local log .aws.log"
 
-with open('.aws.log', 'a') as log:
-  log.write(str(datetime.datetime.now()) + '\n')
-  log.write('reservation id: ' + str(reservation.id) + '\n')
-  log.write('base name: ' + str(args.name) + '\n')
-  log.write('instances: ' + str(instances) +'\n')
-  for index, i in enumerate(instances):
-    i.add_tag('Name',value=str(args.name) + ':' + str(index) + '_' + str(reservation.id))
-    log.write('instance ' + str(i.id) + ' has been assigned the following hostname: ' + str(args.name) + str(index) + '_' + str(reservation.id) + '\n')
-    i.add_tag('Admin',value=args.admin)
-    i.add_tag('Status',value='training')
-  log.write('Please note it may take up to 20 minutes for the images to launch and be fully available')
-  log.write('\n\n')
-log.closed
+#Log instance information
+sql = sqlite3.connect('/vagrant/.aws/aws.db')
+awsDB = sql.cursor()
+
+awsDB.execute('select name from sqlite_master where type="table" and name="instances";')
+if not awsDB.fetchone():
+  awsDB.execute("create table instances(instance_id, reservation_id, name, public_ip, password, state);")
+
+for index, i in enumerate(instances):
+  commonName = str(args.name) + ':' + str(index) + '_' + str(reservation.id)
+  awsDB.execute("insert into instances values (?,?,?,?,null,?)", (str(i.id), str(reservation.id), commonName, str(i.ip_address), str(i._state)))
+  i.add_tag('Name',value=commonName)
+  i.add_tag('Admin',value=args.admin)
+  i.add_tag('Status',value='training')
+  with open('.aws.log', 'a') as log:
+    log.write(str(datetime.datetime.now()) + '\n')
+    log.write('reservation id: ' + str(reservation.id) + '\n')
+    log.write('base name: ' + str(args.name) + '\n')
+    log.write('instances: ' + str(instances) +'\n')
+    log.write('Please note it may take up to 20 minutes for the images to launch and be fully available')
+    log.write('\n\n')
+  log.closed
+
+sql.commit()
+sql.close()
