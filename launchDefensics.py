@@ -1,13 +1,7 @@
 #! /usr/bin/python
 
-import argparse
-import boto.ec2
-import time
-import datetime
-import os
-import sys
-import sqlite3
-from pprint import pprint
+import argparse, boto.ec2, time, datetime, os, sys, sqlite3
+from modules import awsModules
 
 parser = argparse.ArgumentParser(description="Build defensics workstations for training, or demonstrations, in AWS")
 parser.add_argument('-n', '--num', type=int, default=1, help='Number of instances to deploy (default: %(default)s)')
@@ -26,10 +20,7 @@ if not os.path.isdir(awsDir):
   os.makedirs(awsDir)
 
 #Set up connection to AWS
-if args.aws_access_key:
-  conn = boto.ec2.connect_to_region('us-west-1',aws_access_key_id=args.aws_access_key,aws_secret_access_key=args.aws_secret_key)
-else:
-  conn = boto.ec2.connect_to_region('us-west-1',aws_access_key_id=os.environ['AWS_ACCESS_KEY'],aws_secret_access_key=os.environ['AWS_SECRET_KEY'])
+conn = awsModules.connect(args)
 
 #Create key pair
 if conn.get_key_pair(str(args.name)):

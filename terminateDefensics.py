@@ -1,11 +1,7 @@
 #!/usr/bin/python
 
-import argparse
-import boto.ec2
-import os
-import datetime
-import sys
-from pprint import pprint
+import argparse, boto.ec2, os, datetime, sys
+from modules import awsModules
 
 parser = argparse.ArgumentParser(description='Permanently delete instances from AWS')
 parser.add_argument('-O', '--aws-access-key', metavar='key', help='AWS Access Key ID. Defaults to the value of the AWS_ACCESS_KEY environment variable (if set)')
@@ -22,10 +18,7 @@ if args.name:
   if not args.admin:
     sys.exit("To avoid deleteing machines assigned to other admins, please provide your name using the -a/--admin flag")
 
-if args.aws_access_key:
-  conn = boto.ec2.connect_to_region('us-west-1',aws_access_key_id=args.aws_access_key,aws_secret_access_key=args.aws_secret_key)
-else:
-  conn = boto.ec2.connect_to_region('us-west-1',aws_access_key_id=os.environ['AWS_ACCESS_KEY'],aws_secret_access_key=os.environ['AWS_SECRET_KEY'])
+conn = awsModules.connect(args)
 
 if args.res_id:
   reservations = conn.get_all_reservations()
@@ -38,7 +31,7 @@ if args.res_id:
         print str(i.tags['Name']) + ' has been terminated'
       conn.delete_key_pair(commonName)
       os.remove(str(args.res_id))
-      os.remove('.aws/' + commonName + '.pem')
+      os.remove('/vagrant/.aws/' + commonName + '.pem')
 
 if args.name:
   instances = conn.get_only_instances()
@@ -47,5 +40,5 @@ if args.name:
       conn.terminate_instances([str(i.id)], dry_run=args.dry_run)
       conn.delete_key_pair(args.name)
       os.remove(str(args.res_id))
-      os.remove('.aws/' + args.name + '.pem')
+      os.remove('/vagrant/.aws/' + args.name + '.pem')
       print str(i.tags['Name']) + ' has been terminated'
