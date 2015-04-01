@@ -10,8 +10,9 @@ def awsDir():
   return "/vagrant/.aws/"
 
 def getPass(args, i, awsDir):
+  baseName = i.tags['Name'].split(':')[0]
   if args.aws_access_key:
-    cmd = 'ec2-get-password --region us-west-1 -O ' + str(args.aws_access_key) + ' -W ' + str(args.aws_secret_key) + ' ' + str(i.id) + ' -k ' + awsDir + str(i.tags['Name']) + '.pem'
+    cmd = 'ec2-get-password --region us-west-1 -O ' + args.aws_access_key + ' -W ' + args.aws_secret_key + ' ' + i.id + ' -k ' + awsDir + baseName + '.pem'
   else:
-    cmd = 'ec2-get-password --region us-west-1 ' + str(i.id) + ' -k ' + awsDir + str(i.tags['Name']) + '.pem'
+    cmd = 'ec2-get-password --region us-west-1 ' + i.id + ' -k ' + awsDir + baseName + '.pem'
   return os.popen(cmd).read().strip()
