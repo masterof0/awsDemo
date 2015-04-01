@@ -19,7 +19,7 @@ sql = sqlite3.connect(awsDir + 'aws.db')
 awsDB = sql.cursor()
 
 if args.res_id:
-  awsDB.execute("delete from instances where reservation_id=?;", (args.res_id))
+  awsDB.execute("delete from instances where reservation_id='%s';" % args.res_id)
   reservations = conn.get_all_reservations()
   for r in reservations:
     if r.id == args.res_id:
