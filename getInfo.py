@@ -13,6 +13,7 @@ megroup.add_argument('-i', '--instance-id', help='image id')
 args = parser.parse_args()
 
 conn = awsModules.connect(args)
+awsDir = awsModules.awsDir()
 
 if args.res_id:
   reservations = conn.get_all_reservations()
@@ -28,9 +29,9 @@ if args.res_id:
         for i in instances:
 #          pprint(i.__dict__)
           if args.aws_access_key:
-            cmd = 'ec2-get-password --region us-west-1 -O ' + str(args.aws_access_key) + ' -W ' + str(args.aws_secret_key) + ' ' + str(i.id) + ' -k /vagrant/.aws/' + str(commonName) + ".pem"
+            cmd = 'ec2-get-password --region us-west-1 -O ' + str(args.aws_access_key) + ' -W ' + str(args.aws_secret_key) + ' ' + str(i.id) + ' -k ' + awsDir + str(commonName) + ".pem"
           else:
-            cmd = 'ec2-get-password --region us-west-1 ' + str(i.id) + ' -k /vagrant/.aws/' + str(commonName) + ".pem"
+            cmd = 'ec2-get-password --region us-west-1 ' + str(i.id) + ' -k ' + awsDir + str(commonName) + ".pem"
           passwd = os.popen(cmd).read().strip()
           print '{:<25} {:<17} {:<17} {:<17} {:<17}'.format( i.tags['Name'], i.id, i.ip_address , passwd, i._state ) 
           log.write('{:<25} {:<17} {:<17} {:<17} {:<17}'.format( i.tags['Name'], i.id, i.ip_address , passwd, i._state) + '\n')

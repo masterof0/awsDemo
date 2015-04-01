@@ -19,6 +19,7 @@ if args.name:
     sys.exit("To avoid deleteing machines assigned to other admins, please provide your name using the -a/--admin flag")
 
 conn = awsModules.connect(args)
+awsDir = awsModules.awsDir()
 
 if args.res_id:
   reservations = conn.get_all_reservations()
@@ -30,8 +31,9 @@ if args.res_id:
         conn.terminate_instances([str(i.id)], dry_run=args.dry_run)
         print str(i.tags['Name']) + ' has been terminated'
       conn.delete_key_pair(commonName)
-      os.remove(str(args.res_id))
-      os.remove('/vagrant/.aws/' + commonName + '.pem')
+      if os.path.exists(str(args.res_id)):
+        os.remove(str(args.res_id))
+      os.remove(awsDir + commonName + '.pem')
 
 if args.name:
   instances = conn.get_only_instances()
@@ -40,5 +42,5 @@ if args.name:
       conn.terminate_instances([str(i.id)], dry_run=args.dry_run)
       conn.delete_key_pair(args.name)
       os.remove(str(args.res_id))
-      os.remove('/vagrant/.aws/' + args.name + '.pem')
+      os.remove(awsDir + args.name + '.pem')
       print str(i.tags['Name']) + ' has been terminated'

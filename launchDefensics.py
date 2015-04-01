@@ -15,7 +15,8 @@ args = parser.parse_args()
 #print args
 
 reservation, instances = ([] for l in range (2))
-awsDir = "/vagrant/.aws"
+awsDir = awsModules.awsDir()
+
 if not os.path.isdir(awsDir):
   os.makedirs(awsDir)
 
@@ -38,7 +39,7 @@ print "Please note it may take up to 20 minutes for the images to launch and be 
 print "If you need information on your reservation, please check the local log .aws.log"
 
 #Log instance information
-sql = sqlite3.connect('/vagrant/.aws/aws.db')
+sql = sqlite3.connect(awsDir + 'aws.db')
 awsDB = sql.cursor()
 
 awsDB.execute('select name from sqlite_master where type="table" and name="instances";')
