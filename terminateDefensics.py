@@ -23,34 +23,40 @@ awsDir = awsModules.awsDir()
 sql = sqlite3.connect(awsDir + 'aws.db')
 awsDB = sql.cursor()
 
+def deleteKey(baseName):
+  conn.delete_key_pair(baseName)
+  os.remove(awsDir + baseName + '.pem')
+  print "Deleting " + baseName + " keys"
+  
 if args.res_id:
   reservations = conn.get_all_reservations()
   for r in reservations:
     if r.id == args.res_id:
       instances = r.instances
-      commonName = instances[0].tags['Name'].split(':')[0]
+      baseName = instances[0].tags['Name'].split(':')[0]
       for i in instances:
         conn.terminate_instances([i.id], dry_run=args.dry_run)
         print i.tags['Name'] + ' has been terminated'
-      conn.delete_key_pair(commonName)
-      print "Deleting " + commonName + " keys"
+      awsDB.execute("delete from instances where reservation_id='%s';" % args.res_id)
+      deleteKey(baseName)
       if os.path.exists(str(args.res_id)):
         os.remove(args.res_id)
-      os.remove(awsDir + commonName + '.pem')
-      print "Deleting " + commonName + '.pem'
-      awsDB.execute("delete from instances where reservation_id='%s';" % args.res_id)
 
 if args.name:
   instances = conn.get_only_instances()
+  baseName = ''
   for i in instances:
     if i.tags['Name'].startswith(args.name + ":") and i.tags['Admin'] == args.admin:
       conn.terminate_instances([i.id], dry_run=args.dry_run)
-      print str(i.tags['Name']) + ' has been terminated'
+      print i.tags['Name'] + ' has been terminated'
       awsDB.execute("delete from instances where instance_id='%s';" % i.id)
+      baseName = args.name 
     if i.tags['Name'] == args.name and i.tags['Admin'] == args.admin:
       conn.terminate_instances([i.id], dry_run=args.dry_run)
       print str(i.tags['Name']) + ' has been terminated'
       awsDB.execute("delete from instances where instance_id='%s';" % i.id)
+  if baseName:
+    deleteKey(baseName)
 
 sql.commit()
 sql.close()
