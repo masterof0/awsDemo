@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import argparse, boto.ec2, os, datetime, sys
+import argparse, boto.ec2, os, datetime, sys, sqlite3
 from modules import awsModules
 
 parser = argparse.ArgumentParser(description='Permanently delete instances from AWS')
@@ -10,7 +10,7 @@ parser.add_argument('-D', '--dry-run', action='store_true', default=False, help=
 megroup = parser.add_mutually_exclusive_group(required=True)
 megroup.add_argument('-r', '--res-id', help='reservation id')
 megroup.add_argument('-i', '--instance-id', help='image id')
-megroup.add_argument('-n', '--name', help='Base machine name. Requires admin flag to be set')
+megroup.add_argument('-n', '--name', help='Machine name or base name. Requires admin flag to be set')
 parser.add_argument('-a', '--admin', help='administrator')
 args = parser.parse_args()
 
@@ -20,6 +20,8 @@ if args.name:
 
 conn = awsModules.connect(args)
 awsDir = awsModules.awsDir()
+sql = sqlite3.connect(awsDir + 'aws.db')
+awsDB = sql.cursor()
 
 if args.res_id:
   reservations = conn.get_all_reservations()
@@ -29,11 +31,14 @@ if args.res_id:
       commonName = instances[0].tags['Name'].split(':')[0]
       for i in instances:
         conn.terminate_instances([str(i.id)], dry_run=args.dry_run)
-        print str(i.tags['Name']) + ' has been terminated'
+        print i.tags['Name'] + ' has been terminated'
       conn.delete_key_pair(commonName)
+      print "Deleting " + commonName + " keys"
       if os.path.exists(str(args.res_id)):
         os.remove(str(args.res_id))
       os.remove(awsDir + commonName + '.pem')
+      print "Deleting " + commonName + '.pem'
+      awsDB.execute("delete from instances where reservation_id='%s';" % args.res_id)
 
 if args.name:
   instances = conn.get_only_instances()
@@ -44,3 +49,6 @@ if args.name:
       os.remove(str(args.res_id))
       os.remove(awsDir + args.name + '.pem')
       print str(i.tags['Name']) + ' has been terminated'
+
+sql.commit()
+sql.close()
