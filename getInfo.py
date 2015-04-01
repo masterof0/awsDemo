@@ -1,12 +1,13 @@
 #!/usr/bin/python
 
-import argparse, boto.ec2, os
+import argparse, boto.ec2, os, sqlite3
 from modules import awsModules
 #from pprint import pprint
 
 parser = argparse.ArgumentParser(description='Get details on images basd on reservation, instance id, hostname, or admin')
 parser.add_argument('-O', '--aws-access-key', metavar='key', help='AWS Access Key ID. Defaults to the value of the AWS_ACCESS_KEY environment variable (if set)')
 parser.add_argument('-W', '--aws-secret-key', metavar='key', help='AWS Secret Access Key. Defaults to the value of the AWS_SECRET_KEY environment variable (if set)')
+#parser.add_argument('--update', action='store_true', default=False, help='Update database (default: %(default)s)')
 megroup = parser.add_mutually_exclusive_group(required=True)
 megroup.add_argument('-r', '--res-id', help='reservation id')
 megroup.add_argument('-i', '--instance-id', help='image id')
@@ -14,27 +15,26 @@ args = parser.parse_args()
 
 conn = awsModules.connect(args)
 awsDir = awsModules.awsDir()
+sql = sqlite3.connect(awsDir + 'aws.db')
+awsDB = sql.cursor()
 
 if args.res_id:
+  awsDB.execute("delete from instances where reservation_id=?;", (args.res_id))
   reservations = conn.get_all_reservations()
   for r in reservations:
     if r.id == args.res_id:
       instances = r.instances
-      commonName = instances[0].tags['Name'].split(':')[0]
-      with open(str(r.id), 'w') as log:
-        print '\n{:<25} {:<17} {:<17} {:<17} {:<17}'.format( 'Hostname', 'Instance ID', 'Public IP', 'Password', 'State' )
-        print '{:#<93}'.format('')
-        log.write('\n{:<25} {:<17} {:<17} {:<17} {:<17}'.format( 'Hostname', 'Instance ID', 'Public IP', 'Password', 'State' ) + '\n')
-        log.write('{:#<93}'.format('') + '\n')
-        for i in instances:
-#          pprint(i.__dict__)
-          if args.aws_access_key:
-            cmd = 'ec2-get-password --region us-west-1 -O ' + str(args.aws_access_key) + ' -W ' + str(args.aws_secret_key) + ' ' + str(i.id) + ' -k ' + awsDir + str(commonName) + ".pem"
-          else:
-            cmd = 'ec2-get-password --region us-west-1 ' + str(i.id) + ' -k ' + awsDir + str(commonName) + ".pem"
-          passwd = os.popen(cmd).read().strip()
-          print '{:<25} {:<17} {:<17} {:<17} {:<17}'.format( i.tags['Name'], i.id, i.ip_address , passwd, i._state ) 
-          log.write('{:<25} {:<17} {:<17} {:<17} {:<17}'.format( i.tags['Name'], i.id, i.ip_address , passwd, i._state) + '\n')
-        log.write('\n')
-        print
-      log.closed
+      for i in instances:
+        passwd = awsModules.getPass(args, i, awsDir)
+        awsDB.execute("insert into instances values (?,?,?,?,?,?)", (i.id, args.res_id, i.tags['Name'], i.ip_address, passwd, str(i._state)))
+
+if args.instance_id:
+  instances = conn.get_only_instances()
+  for i in instances:
+    if i.id == args.instance_id:
+      passwd = awsModules.getPass(args, i, awsDir)
+      awsDB.execute("update instances set public_ip=?, password=?, state=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.id))
+
+sql.commit()
+sql.close()
+
