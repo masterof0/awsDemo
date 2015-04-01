@@ -58,5 +58,10 @@ if args.name:
   if baseName:
     deleteKey(baseName)
 
+if args.instance_id:
+  conn.terminate_instances([args.instance_id], dry_run=args.dry_run)
+  print args.instance_id + ' has been terminated'
+  awsDB.execute("delete from instances where instance_id='%s';" % args.instance_id)
+
 sql.commit()
 sql.close()
