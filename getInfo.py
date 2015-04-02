@@ -15,7 +15,7 @@ args = parser.parse_args()
 
 conn = awsModules.connect(args)
 awsDir = awsModules.awsDir()
-sql = sqlite3.connect(awsDir + 'aws.db')
+sql = awsModules.awsDB()
 awsDB = sql.cursor()
 
 if args.res_id:

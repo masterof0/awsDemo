@@ -38,7 +38,7 @@ print "Please note it may take up to 30 minutes for the images to launch and be 
 print "If you need information on your reservation, please check the local log .aws.log"
 
 #Log instance information
-sql = sqlite3.connect(awsDir + 'aws.db')
+sql = awsModules.awsDB()
 awsDB = sql.cursor()
 
 awsDB.execute('select name from sqlite_master where type="table" and name="instances";')

@@ -20,12 +20,13 @@ if args.name:
 
 conn = awsModules.connect(args)
 awsDir = awsModules.awsDir()
-sql = sqlite3.connect(awsDir + 'aws.db')
+sql = awsModules.awsDB()
 awsDB = sql.cursor()
 
 def deleteKey(baseName):
   conn.delete_key_pair(baseName)
-  os.remove(awsDir + baseName + '.pem')
+  if os.path.exists(awsDir + baseName + '.pem')
+    os.remove(awsDir + baseName + '.pem')
   print "Deleting " + baseName + " keys"
   
 if args.res_id:

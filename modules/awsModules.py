@@ -1,4 +1,4 @@
-import boto.ec2, os
+import boto.ec2, os, sqlite3
 
 def connect(args):
   if args.aws_access_key:
@@ -8,6 +8,9 @@ def connect(args):
 
 def awsDir():
   return "/vagrant/.aws/"
+
+def awsDB():
+  return sqlite3.connect(awsDir() + 'aws.db')
 
 def getPass(args, i, awsDir):
   baseName = i.tags['Name'].split(':')[0]
