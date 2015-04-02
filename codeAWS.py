@@ -2,10 +2,13 @@
 
 import sqlite3
 from flask import Flask, g, render_template, request, url_for
+from flask_bootstrap import Bootstrap
 from modules import awsModules
 
-app = Flask(__name__)
 awsDir = awsModules.awsDir()
+
+app = Flask(__name__)
+Bootstrap(app)
 
 @app.before_request
 def before_request():
@@ -25,7 +28,7 @@ def hello_world():
 def show_instances():
   cur = g.db.execute('select * from instances;')
   instances = [dict(hostname=row[2], instance_id=row[0], reservation_id=row[1], public_ip=row[3], password=row[4], state=row[5]) for row in cur.fetchall()]
-  return str(instances)
+  return render_template('show_entries.html', entries=instances)
 
 if __name__ == '__main__':
   app.run(host='0.0.0.0',debug=True)
