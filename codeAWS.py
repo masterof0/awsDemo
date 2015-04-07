@@ -33,7 +33,7 @@ def hello_world():
 def show_instances():
   cur = g.db.execute('select * from instances;')
   instances = [dict(hostname=row[2], instance_id=row[0], reservation_id=row[1], public_ip=row[3], password=row[4], state=row[5]) for row in cur.fetchall()]
-  return render_template('show_entries.html', entries=instances, pageTitle="AWS Instances")
+  return render_template('instances.html', entries=instances, pageTitle="AWS Instances")
 
 @app.route('/update', methods=('GET', 'POST'))
 def update():
