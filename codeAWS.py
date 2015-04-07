@@ -3,12 +3,17 @@
 import sqlite3
 from flask import Flask, g, render_template, request, url_for
 from flask_bootstrap import Bootstrap
+from wtforms import BooleanField, StringField, validators
+from flask_wtf import Form 
 from modules import awsModules
 
 awsDir = awsModules.awsDir()
 
 app = Flask(__name__)
 Bootstrap(app)
+
+class updateForm(Form):
+  res_id = StringField('Reservation ID', validators=[validators.Length(min=10, max=10)])
 
 @app.before_request
 def before_request():
@@ -30,6 +35,11 @@ def show_instances():
   instances = [dict(hostname=row[2], instance_id=row[0], reservation_id=row[1], public_ip=row[3], password=row[4], state=row[5]) for row in cur.fetchall()]
   return render_template('show_entries.html', entries=instances, pageTitle="AWS Instances")
 
+@app.route('/update', methods=('GET', 'POST'))
+def update():
+  form = updateForm(csrf_enabled=False)
+  return render_template('update.html', form=form)
+  
 @app.errorhandler(404)
 def page_not_found(error):
     return 'This page does not exist', 404
