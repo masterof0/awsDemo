@@ -14,7 +14,7 @@ app.secret_key = '\xc8`\x1dB\xb9~\xb4w|\xafd\xc9%\xc9\x05\xe5!&\x062\x81h\x81\xb
 Bootstrap(app)
 
 class updateForm(Form):
-  type = SelectField('resource', choices=[('res_id','Reservation ID'),('instance_id','Instance ID')])
+  type = SelectField('resource', choices=[('res_id','Reservation ID'),('instance_id','Instance ID'),('admin','Administrator')])
   value = StringField('value')
 
 @app.before_request
@@ -53,10 +53,27 @@ def update():
             passwd = aws.getPass('','', i, awsDir)
             g.db.execute("insert into instances values (?,?,?,?,?,?)", (i.id, form.value.data, i.tags['Name'], i.ip_address, passwd, str(i._state)))  
       g.db.commit()
-      flash('Reservation ' + form.type.data + ' has been successfully updated')
+      flash('Reservation ' + form.value.data + ' has been successfully updated')
       return redirect('instances', code=302)
-#      return "reservation " + form.value.data + " has been successfully updated "
- 
+    if form.type.data == 'instance_id':
+      instances = aws.connect('','').get_only_instances()
+      for i in instances:
+        if i.id == form.value.data:
+          passwd = aws.getPass('','', i, awsDir)
+          g.db.execute("update instances set public_ip=?, password=?, state=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.id))
+      g.db.commit()
+      flash('Instance ' + form.value.data + ' has been successfully updated')
+      return redirect('instances', code=302)
+    if form.type.data == 'admin':
+      instances = aws.connect('','').get_only_instances()
+      for i in instances:
+        if i.tags['Admin'] == form.value.data:
+          passwd = aws.getPass('','', i, awsDir)
+          g.db.execute("update instances set public_ip=?, password=?, state=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.id))
+      g.db.commit()
+      flash('Machines for ' + form.value.data + ' have been successfully updated')
+      return redirect('instances', code=302)
+
 @app.errorhandler(404)
 def page_not_found(error):
     return 'This page does not exist', 404
