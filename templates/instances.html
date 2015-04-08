@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <table class="table table-striped table-condensed">
+  <table class="table table-striped table-condensed table-hover">
     <thead>
       <tr>
         <th><h3>Hostname</h3></th>
@@ -10,8 +10,8 @@
         <th><h3>State</h3></th>
         <th><h3>Instance ID</h3></th>
         <th><h3>Reservation ID</h3></th>
-        <th><h3><button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-refresh"></span> Update All</button></h3></th>
-        <th><h3><button type="button" class="btn btn-danger"><span class="glyphicon glyphicon-remove"></span> Terminate All</button></h3></th>
+        <th><h3><a href="#" type="button" class="btn btn-primary btn-block"><span class="glyphicon glyphicon-refresh"></span> Update All</a></h3></th>
+        <th><h3><a href="#" type="button" class="btn btn-danger btn-block"><span class="glyphicon glyphicon-remove"></span> Terminate All</a></h3></th>
       </tr>
     </th>
     <tbody>
@@ -23,8 +23,8 @@
         <td>{{entry.state}}</td>
         <td>{{entry.instance_id}}</td>
         <td>{{entry.reservation_id}}</td>
-        <td><button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-refresh"></span> Update</button></td>
-        <td><button type="button" class="btn btn-danger"><span class="glyphicon glyphicon-remove"></span> Terminate</button></td>
+        <td><a href="#" type="button" class="btn btn-primary btn-block"><span class="glyphicon glyphicon-refresh"></span> Update</a></td>
+        <td><a href="#" type="button" class="btn btn-danger btn-block"><span class="glyphicon glyphicon-remove"></span> Terminate</a></td>
       </tr>
       {% endfor %}
     </tbody>
