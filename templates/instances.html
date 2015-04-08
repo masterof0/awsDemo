@@ -10,6 +10,8 @@
         <th><h3>State</h3></th>
         <th><h3>Instance ID</h3></th>
         <th><h3>Reservation ID</h3></th>
+        <th><h3><button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-refresh"></span> Update All</button></h3></th>
+        <th><h3><button type="button" class="btn btn-danger"><span class="glyphicon glyphicon-remove"></span> Terminate All</button></h3></th>
       </tr>
     </th>
     <tbody>
@@ -21,6 +23,8 @@
         <td>{{entry.state}}</td>
         <td>{{entry.instance_id}}</td>
         <td>{{entry.reservation_id}}</td>
+        <td><button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-refresh"></span> Update</button></td>
+        <td><button type="button" class="btn btn-danger"><span class="glyphicon glyphicon-remove"></span> Terminate</button></td>
       </tr>
       {% endfor %}
     </tbody>
