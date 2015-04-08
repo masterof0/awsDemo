@@ -19,3 +19,6 @@ def getPass(args, i, awsDir):
   else:
     cmd = 'ec2-get-password --region us-west-1 ' + i.id + ' -k ' + awsDir + baseName + '.pem'
   return os.popen(cmd).read().strip()
+
+def run_script(name):
+  subprocess.call(name)

@@ -3,7 +3,7 @@
 {% block content %}
   <form class="form" method="POST" role="form">
     {{ form.hidden_tag() }}
-    {{ form.res_id.label }} {{ form.res_id(size=10) }}
+    Resource Type: {{ form.type }} {{ form.value(size=20) }}
     <input type='submit' value="Submit">
   </form>
 {% endblock %}
