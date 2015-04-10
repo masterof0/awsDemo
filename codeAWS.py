@@ -58,8 +58,36 @@ def instances():
 @app.route('/reservation', methods=['GET', 'POST'])
 def makeReservation():
   form = reservation()
+  admin = 'cjohnson'
   if request.method == "GET":
     return render_template('reservation.html', form=form, pageTitle="AWS Reservation")
+  if request.method == "POST":
+    #Check for existing keys and create if needed
+    if aws.connect('','').get_key_pair(form.name.data):
+      if not os.path.exists(aws.awsDir() + form.name.data + '.pem'): 
+        return ("This name is already taken. Please try again with new name")
+    else:
+      key = aws.connect('','').create_key_pair(form.name.data)
+      key.save(aws.awsDir())
+    #Create reservations
+    res = aws.connect('','').run_instances('ami-ff21c0bb',max_count=form.num.data, key_name=form.name.data, security_groups=['sg_training'], instance_type=form.iType.data)
+    flash("Your reservation id for this defensics request is: " + str(res.id))
+    flash("Please note it may take up to 30 minutes for the images to launch and be fully available")
+    instances = res.instances
+    #Create tabale if needed
+    cur = g.db.execute('select name from sqlite_master where type="table" and name="instances";')
+    if not cur.fetchone():
+      g.db.execute("create table instances(instance_id, reservation_id, name, public_ip, password, state, key);")
+    #Write instance information to database and add appropriate tags
+    for index, i in enumerate(instances):
+      commonName = form.name.data + ':' + str(index) + '_' + res.id
+      g.db.execute("insert into instances values (?,?,?,?,null,?,?)", (i.id, res.id, commonName, i.ip_address, str(i._state), form.name.data))
+      i.add_tag('Name',value=commonName)
+      i.add_tag('Admin',value=admin)
+      i.add_tag('Status',value='training')
+    g.db.commit()
+    return redirect('instances', code=302)
+
 
 #@app.route('/update', methods=['GET','POST'])
 #def update():
