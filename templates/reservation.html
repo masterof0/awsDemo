@@ -5,7 +5,7 @@
     <form class="form" method="POST" role="form">
       {{ form.hidden_tag() }}
       <div class="row">
-        <div class="col-xs-3">Number of instances:</div><div class="col-xs-3">{{ form.num(size=2) }}</div>
+        <div class="col-xs-3">Number of instances:</div><div class="col-xs-3">{{ form.num(size=2) }} *maximum of 10 instances per reservation</div>
       </div>
       <div class="row">
         <div class="col-xs-3">Instance type:</div><div class="col-xs-3">{{ form.iType }}</div>

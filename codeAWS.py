@@ -13,7 +13,7 @@ Bootstrap(app)
 
 class reservation(Form):
   num = IntegerField('num', [validators.Required(), validators.NumberRange(min=1, max=10)])
-  iType = SelectField('iType', choices=[('t1.micro', 'T1 micro'), ('t2.micro', 'T2 micro'), ('m3.xlarge', 'M3 X-Large')])
+  iType = SelectField('iType', choices=[('t2.micro', 'T2 Micro (preferred)'), ('t2.medium', 'T2 Medium'), ('m3.xlarge', 'M3 X-Large (training)')])
   name = StringField('name', [validators.Required()])
 
 @app.before_request
@@ -59,7 +59,7 @@ def instances():
 def makeReservation():
   form = reservation()
   if request.method == "GET":
-    return render_template('reservation.html', form=form)
+    return render_template('reservation.html', form=form, pageTitle="AWS Reservation")
 
 #@app.route('/update', methods=['GET','POST'])
 #def update():
