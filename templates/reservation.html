@@ -1,9 +1,21 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <form class="form" method="POST" role="form">
-    {{ form.hidden_tag() }}
-    Resource Type: {{ form.type }} {{ form.value(size=20) }}
-    <input type='submit' value="Submit">
-  </form>
+  <div class="container-fluid">
+    <form class="form" method="POST" role="form">
+      {{ form.hidden_tag() }}
+      <div class="row">
+        <div class="col-xs-3">Number of instances:</div><div class="col-xs-3">{{ form.num(size=2) }}</div>
+      </div>
+      <div class="row">
+        <div class="col-xs-3">Instance type:</div><div class="col-xs-3">{{ form.iType }}</div>
+      </div>
+      <div class="row">
+        <div class="col-xs-3">Instance(s) name:</div><div class="col-xs-3">{{ form.name(size=20) }}</div>
+      </div>
+      <div class="row">
+        <div class="col-xs-3"><button class='btn btn-success btn-block' type='submit' value='submit'><span class="glyphicon glyphicon-plus"></span> Make Reservation</button></div>
+      </div>
+    </form>
+  </div>
 {% endblock %}

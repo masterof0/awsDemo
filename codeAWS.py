@@ -3,7 +3,7 @@
 import sqlite3, boto.ec2, os
 from flask import Flask, g, render_template, request, url_for, redirect, flash
 from flask_bootstrap import Bootstrap
-from wtforms import StringField, SelectField, HiddenField, validators
+from wtforms import StringField, SelectField, IntegerField, validators
 from flask_wtf import Form 
 from modules import aws
 
@@ -11,14 +11,10 @@ app = Flask(__name__)
 app.secret_key = '\xc8`\x1dB\xb9~\xb4w|\xafd\xc9%\xc9\x05\xe5!&\x062\x81h\x81\xb8'
 Bootstrap(app)
 
-class updateForm(Form):
-  type = SelectField('resource', choices=[('res_id','Reservation ID'),('instance_id','Instance ID'),('admin','Administrator')])
-  value = StringField('value')
-
-class reservation(Form)
-  num = IntegerField('number', default=1, [validators.Required(), validators.NumberRange(min=1, max=10)]
-  iType = SelectField('instanceType', default="t1.micro", choices=[('t1.micro', 'T1 micro'), ('t2.micro', 'T2 micro'), ('m3.xlarge', 'M3 X-Large')])
-  name = StringField('machineName', [validators.Rquired())
+class reservation(Form):
+  num = IntegerField('num', [validators.Required(), validators.NumberRange(min=1, max=10)])
+  iType = SelectField('iType', choices=[('t1.micro', 'T1 micro'), ('t2.micro', 'T2 micro'), ('m3.xlarge', 'M3 X-Large')])
+  name = StringField('name', [validators.Required()])
 
 @app.before_request
 def before_request():
@@ -60,6 +56,7 @@ def instances():
     return render_template('instances.html', entries=instances, pageTitle="AWS Instances")
 
 @app.route('/reservation', methods=['GET', 'POST'])
+def makeReservation():
   form = reservation()
   if request.method == "GET":
     return render_template('reservation.html', form=form)
