@@ -3,11 +3,9 @@
 import sqlite3, boto.ec2, os
 from flask import Flask, g, render_template, request, url_for, redirect, flash
 from flask_bootstrap import Bootstrap
-from wtforms import BooleanField, StringField, SelectField, validators
+from wtforms import StringField, SelectField, HiddenField, validators
 from flask_wtf import Form 
 from modules import aws
-
-awsDir = aws.awsDir()
 
 app = Flask(__name__)
 app.secret_key = '\xc8`\x1dB\xb9~\xb4w|\xafd\xc9%\xc9\x05\xe5!&\x062\x81h\x81\xb8'
@@ -31,11 +29,30 @@ def teardown_request(exception):
 def index():
   return redirect('instances', code=302)
 
-@app.route('/instances')
+@app.route('/instances', methods=['GET', 'POST'])
 def instances():
-  cur = g.db.execute('select * from instances;')
-  instances = [dict(hostname=row[2], instance_id=row[0], reservation_id=row[1], public_ip=row[3], password=row[4], state=row[5]) for row in cur.fetchall()]
-  return render_template('instances.html', entries=instances, pageTitle="AWS Instances")
+  if request.method == "POST":
+    action = request.form['action']
+    resType = request.form['resType']
+    resValue = request.form['resValue']
+    if action == 'update':
+      if resType == 'instance_id':
+        instances = aws.connect('','').get_only_instances(instance_ids=[resValue])
+        for i in instances: 
+          passwd = aws.getPass('','', i, aws.awsDir)
+          g.db.execute("update instances set public_ip=?, password=?, state=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.id))
+      g.db.commit()
+      flash('Instance ' + resValue + ' has been successfully updated')
+    if action == 'terminate':
+      aws.connect('','').terminate_instances([resValue])
+      g.db.execute("delete from instances where instance_id='%s';" % resValue)
+      g.db.commit()
+      flash('Instance ' + resValue + ' has been successfully terminated')
+    return redirect('instances', code=302)
+  if request.method == "GET":
+    cur = g.db.execute('select * from instances;')
+    instances = [dict(hostname=row[2], instance_id=row[0], reservation_id=row[1], public_ip=row[3], password=row[4], state=row[5]) for row in cur.fetchall()]
+    return render_template('instances.html', entries=instances, pageTitle="AWS Instances")
 
 @app.route('/update', methods=['GET','POST'])
 def update():
@@ -50,7 +67,7 @@ def update():
         if r.id == form.value.data:
           instances = r.instances
           for i in instances:
-            passwd = aws.getPass('','', i, awsDir)
+            passwd = aws.getPass('','', i, aws.awsDir)
             g.db.execute("insert into instances values (?,?,?,?,?,?)", (i.id, form.value.data, i.tags['Name'], i.ip_address, passwd, str(i._state)))  
       g.db.commit()
       flash('Reservation ' + form.value.data + ' has been successfully updated')
@@ -59,7 +76,7 @@ def update():
       instances = aws.connect('','').get_only_instances()
       for i in instances:
         if i.id == form.value.data:
-          passwd = aws.getPass('','', i, awsDir)
+          passwd = aws.getPass('','', i, aws.awsDir)
           g.db.execute("update instances set public_ip=?, password=?, state=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.id))
       g.db.commit()
       flash('Instance ' + form.value.data + ' has been successfully updated')
@@ -68,7 +85,7 @@ def update():
       instances = aws.connect('','').get_only_instances()
       for i in instances:
         if i.tags['Admin'] == form.value.data:
-          passwd = aws.getPass('','', i, awsDir)
+          passwd = aws.getPass('','', i, aws.awsDir)
           g.db.execute("update instances set public_ip=?, password=?, state=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.id))
       g.db.commit()
       flash('Machines for ' + form.value.data + ' have been successfully updated')

@@ -10,8 +10,8 @@
         <th><h3>State</h3></th>
         <th><h3>Instance ID</h3></th>
         <th><h3>Reservation ID</h3></th>
-        <th><h3><a href="#" type="button" class="btn btn-primary btn-block"><span class="glyphicon glyphicon-refresh"></span> Update All</a></h3></th>
-        <th><h3><a href="#" type="button" class="btn btn-danger btn-block"><span class="glyphicon glyphicon-remove"></span> Terminate All</a></h3></th>
+        <th><button class='btn btn-primary btn-block' type='submit' value='submit'><span class="glyphicon glyphicon-refresh"></span> Update All</button></th>
+        <th><button class='btn btn-danger btn-block' type='submit'><span class="glyphicon glyphicon-remove"></span> Terminate All</button></th>
       </tr>
     </th>
     <tbody>
@@ -23,8 +23,18 @@
         <td>{{entry.state}}</td>
         <td>{{entry.instance_id}}</td>
         <td>{{entry.reservation_id}}</td>
-        <td><a href="#" type="button" class="btn btn-primary btn-block"><span class="glyphicon glyphicon-refresh"></span> Update</a></td>
-        <td><a href="#" type="button" class="btn btn-danger btn-block"><span class="glyphicon glyphicon-remove"></span> Terminate</a></td>
+        <td>
+          <form method="POST">
+            <input id='action' name='action' value='update' type=hidden>
+            <input id='resType' name='resType' value='instance_id' type=hidden>
+            <input id='resValue' name='resValue' value={{entry.instance_id}} type=hidden>
+            <button class='btn btn-primary btn-block' type='submit'><span class="glyphicon glyphicon-refresh"></span> Update</button></form></td>
+        <td>
+          <form method="POST">
+            <input id='action' name='action' value='terminate' type=hidden>
+            <input id='resType' name='resType' value='instance_id' type=hidden>
+            <input id='resValue' name='resValue' value={{entry.instance_id}} type=hidden>
+            <button class='btn btn-danger btn-block' type='submit'><span class="glyphicon glyphicon-remove"></span> Terminate</button></form></td>
       </tr>
       {% endfor %}
     </tbody>
