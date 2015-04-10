@@ -15,6 +15,11 @@ class updateForm(Form):
   type = SelectField('resource', choices=[('res_id','Reservation ID'),('instance_id','Instance ID'),('admin','Administrator')])
   value = StringField('value')
 
+class reservation(Form)
+  num = IntegerField('number', default=1, [validators.Required(), validators.NumberRange(min=1, max=10)]
+  iType = SelectField('instanceType', default="t1.micro", choices=[('t1.micro', 'T1 micro'), ('t2.micro', 'T2 micro'), ('m3.xlarge', 'M3 X-Large')])
+  name = StringField('machineName', [validators.Rquired())
+
 @app.before_request
 def before_request():
   g.db = aws.awsDB()
@@ -39,7 +44,7 @@ def instances():
       if resType == 'instance_id':
         instances = aws.connect('','').get_only_instances(instance_ids=[resValue])
         for i in instances: 
-          passwd = aws.getPass('','', i, aws.awsDir)
+          passwd = aws.getPass('','', i, aws.awsDir())
           g.db.execute("update instances set public_ip=?, password=?, state=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.id))
       g.db.commit()
       flash('Instance ' + resValue + ' has been successfully updated')
@@ -54,42 +59,47 @@ def instances():
     instances = [dict(hostname=row[2], instance_id=row[0], reservation_id=row[1], public_ip=row[3], password=row[4], state=row[5]) for row in cur.fetchall()]
     return render_template('instances.html', entries=instances, pageTitle="AWS Instances")
 
-@app.route('/update', methods=['GET','POST'])
-def update():
-  form = updateForm()#csrf_enabled=False)
+@app.route('/reservation', methods=['GET', 'POST'])
+  form = reservation()
   if request.method == "GET":
-    return render_template('update.html', form=form)
-  if request.method == "POST":
-    if form.type.data == 'res_id':
-      g.db.execute("delete from instances where reservation_id='%s';" % form.value.data)
-      reservations = aws.connect('','').get_all_reservations()
-      for r in reservations:
-        if r.id == form.value.data:
-          instances = r.instances
-          for i in instances:
-            passwd = aws.getPass('','', i, aws.awsDir)
-            g.db.execute("insert into instances values (?,?,?,?,?,?)", (i.id, form.value.data, i.tags['Name'], i.ip_address, passwd, str(i._state)))  
-      g.db.commit()
-      flash('Reservation ' + form.value.data + ' has been successfully updated')
-      return redirect('instances', code=302)
-    if form.type.data == 'instance_id':
-      instances = aws.connect('','').get_only_instances()
-      for i in instances:
-        if i.id == form.value.data:
-          passwd = aws.getPass('','', i, aws.awsDir)
-          g.db.execute("update instances set public_ip=?, password=?, state=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.id))
-      g.db.commit()
-      flash('Instance ' + form.value.data + ' has been successfully updated')
-      return redirect('instances', code=302)
-    if form.type.data == 'admin':
-      instances = aws.connect('','').get_only_instances()
-      for i in instances:
-        if i.tags['Admin'] == form.value.data:
-          passwd = aws.getPass('','', i, aws.awsDir)
-          g.db.execute("update instances set public_ip=?, password=?, state=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.id))
-      g.db.commit()
-      flash('Machines for ' + form.value.data + ' have been successfully updated')
-      return redirect('instances', code=302)
+    return render_template('reservation.html', form=form)
+
+#@app.route('/update', methods=['GET','POST'])
+#def update():
+#  form = updateForm()#csrf_enabled=False)
+#  if request.method == "GET":
+#    return render_template('update.html', form=form)
+#  if request.method == "POST":
+#    if form.type.data == 'res_id':
+#      g.db.execute("delete from instances where reservation_id='%s';" % form.value.data)
+#      reservations = aws.connect('','').get_all_reservations()
+#      for r in reservations:
+#        if r.id == form.value.data:
+#          instances = r.instances
+#          for i in instances:
+#            passwd = aws.getPass('','', i, aws.awsDir())
+#            g.db.execute("insert into instances values (?,?,?,?,?,?)", (i.id, form.value.data, i.tags['Name'], i.ip_address, passwd, str(i._state)))  
+#      g.db.commit()
+#      flash('Reservation ' + form.value.data + ' has been successfully updated')
+#      return redirect('instances', code=302)
+#    if form.type.data == 'instance_id':
+#      instances = aws.connect('','').get_only_instances()
+#      for i in instances:
+#        if i.id == form.value.data:
+#          passwd = aws.getPass('','', i, aws.awsDir())
+#          g.db.execute("update instances set public_ip=?, password=?, state=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.id))
+#      g.db.commit()
+#      flash('Instance ' + form.value.data + ' has been successfully updated')
+#      return redirect('instances', code=302)
+#    if form.type.data == 'admin':
+#      instances = aws.connect('','').get_only_instances()
+#      for i in instances:
+#        if i.tags['Admin'] == form.value.data:
+#          passwd = aws.getPass('','', i, aws.awsDir())
+#          g.db.execute("update instances set public_ip=?, password=?, state=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.id))
+#      g.db.commit()
+#      flash('Machines for ' + form.value.data + ' have been successfully updated')
+#      return redirect('instances', code=302)
 
 @app.errorhandler(404)
 def page_not_found(error):

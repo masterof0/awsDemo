@@ -10,16 +10,15 @@
 {% endblock %}
 
 {% block navbar %}
-<div class="navbar navbar-default">
+<div class="navbar navbar-inverse">
   <ul class="nav nav-tabs">
-    <li><a href="instances">View Instances</a></li>
-    <li><a href="#">Make Reservations</a></li>
-    <li><a href="update">Update</a></li>
+    <li><a class="color-me-white" href="instances">Manage Instances</a></li>
+    <li><a class="color-me-white" href="keys">Manage Keys</a></li>
   </ul>
   {% with messages = get_flashed_messages() %}
     {% if messages %}
       {% for message in messages %}
-        <p class="navbar-text navbar-right">{{ message }}</p>
+        <p class="navbar-text navbar-left">{{ message }}</p>
       {% endfor %}
     {% endif %}
   {% endwith %}
