@@ -56,7 +56,9 @@ def setup():
   if request.method == "GET":
     return render_template('setup.html', form=form, pageTitle="AWS Setup")
   if request.method == "POST":
-    g.db.execute("delete from admins where user='%s';" % form.username.data)
+#    g.db.execute("delete from admins where user='%s';" % form.username.data)
+    g.db.execute("drop table admins")
+    g.db.execute("create table admins(user, access_key, secret_key);")
     g.db.execute("insert into admins values (?,?,?)", (form.username.data,form.accessKey.data, form.secretKey.data))
     g.db.commit()
     flash("User " + form.username.data + " has been added")
