@@ -5,13 +5,13 @@
     <form class="form" method="POST" role="form">
       {{ form.hidden_tag() }}
       <div class="row">
-        <div class="col-xs-3">Number of instances:</div><div class="col-xs-3">{{ form.num(size=2) }} *maximum of 10 instances per reservation</div>
+        <div class="col-xs-3"><h4>Number of instances:</h4></div><div class="col-xs-3">{{ form.num(size=2) }} *maximum of 10 instances per reservation</div>
       </div>
       <div class="row">
-        <div class="col-xs-3">Instance type:</div><div class="col-xs-3">{{ form.iType }}</div>
+        <div class="col-xs-3"><h4>Instance type:</h4></div><div class="col-xs-3">{{ form.iType }}</div>
       </div>
       <div class="row">
-        <div class="col-xs-3">Instance(s) name:</div><div class="col-xs-3">{{ form.name(size=20) }}</div>
+        <div class="col-xs-3"><h4>Instance(s) name:</h4></div><div class="col-xs-3">{{ form.name(size=20) }}</div>
       </div>
       <div class="row">
         <div class="col-xs-3"><button class='btn btn-success btn-block' type='submit' value='submit'><span class="glyphicon glyphicon-plus"></span> Make Reservation</button></div>

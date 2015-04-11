@@ -5,13 +5,13 @@
     <form class="form" method="POST" role="form">
       {{ form.hidden_tag() }}
       <div class="row">
-        <div class="col-xs-3">Administrator name:</div><div class="col-xs-3">{{ form.username(size=24) }}</div>
+        <div class="col-xs-3"><h4>Administrator name:</h4></div><div class="col-xs-3">{{ form.username(size=24) }}</div>
       </div>
       <div class="row">
-        <div class="col-xs-3">Access key</div><div class="col-xs-3">{{ form.accessKey(size=24) }}</div>
+        <div class="col-xs-3"><h4>Access key</h4></div><div class="col-xs-3">{{ form.accessKey(size=24) }}</div>
       </div>
       <div class="row">
-        <div class="col-xs-3">Secret key:</div><div class="col-xs-3">{{ form.secretKey(size=24) }}</div>
+        <div class="col-xs-3"><h4>Secret key:</h4></div><div class="col-xs-3">{{ form.secretKey(size=24) }}</div>
       </div>
       <div class="row">
         <div class="col-xs-3"><button class='btn btn-success btn-block' type='submit' value='submit'><span class="glyphicon glyphicon-plus"></span> Save User</button></div>
