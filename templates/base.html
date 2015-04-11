@@ -11,17 +11,22 @@
 
 {% block navbar %}
 <div class="navbar navbar-inverse">
-  <ul class="nav nav-tabs">
+  <ul class="nav nav-tabs nav-justified">
     <li><a class="color-me-white" href="instances">Manage Instances</a></li>
     <li><a class="color-me-white" href="keys">Manage Keys</a></li>
     <li><a class="color-me-white" href="reservation">Make Reservation</a></li>
+    <li><a class="color-me-white" href="reservation">Setup</a></li>
   </ul>
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      {% for message in messages %}
-        <p class="navbar-text navbar-left">{{ message }}<br></p>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
+  <div class="container">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="row color-me-white">
+          {% for message in messages %}
+            {{ message }}<br>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+  </div>
 </div>
 {% endblock %}
