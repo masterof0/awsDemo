@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import sqlite3, boto.ec2, os
+import sqlite3, boto.ec2, os, glob
 from flask import Flask, g, render_template, request, url_for, redirect, flash
 from flask_bootstrap import Bootstrap
 from wtforms import StringField, SelectField, IntegerField, validators
@@ -119,43 +119,23 @@ def makeReservation():
     g.db.commit()
     return redirect('instances', code=302)
 
-
-#@app.route('/update', methods=['GET','POST'])
-#def update():
-#  form = updateForm()#csrf_enabled=False)
-#  if request.method == "GET":
-#    return render_template('update.html', form=form)
-#  if request.method == "POST":
-#    if form.type.data == 'res_id':
-#      g.db.execute("delete from instances where reservation_id='%s';" % form.value.data)
-#      reservations = aws.connect('','').get_all_reservations()
-#      for r in reservations:
-#        if r.id == form.value.data:
-#          instances = r.instances
-#          for i in instances:
-#            passwd = aws.getPass('','', i, aws.awsDir())
-#            g.db.execute("insert into instances values (?,?,?,?,?,?)", (i.id, form.value.data, i.tags['Name'], i.ip_address, passwd, str(i._state)))  
-#      g.db.commit()
-#      flash('Reservation ' + form.value.data + ' has been successfully updated')
-#      return redirect('instances', code=302)
-#    if form.type.data == 'instance_id':
-#      instances = aws.connect('','').get_only_instances()
-#      for i in instances:
-#        if i.id == form.value.data:
-#          passwd = aws.getPass('','', i, aws.awsDir())
-#          g.db.execute("update instances set public_ip=?, password=?, state=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.id))
-#      g.db.commit()
-#      flash('Instance ' + form.value.data + ' has been successfully updated')
-#      return redirect('instances', code=302)
-#    if form.type.data == 'admin':
-#      instances = aws.connect('','').get_only_instances()
-#      for i in instances:
-#        if i.tags['Admin'] == form.value.data:
-#          passwd = aws.getPass('','', i, aws.awsDir())
-#          g.db.execute("update instances set public_ip=?, password=?, state=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.id))
-#      g.db.commit()
-#      flash('Machines for ' + form.value.data + ' have been successfully updated')
-#      return redirect('instances', code=302)
+@app.route('/keys', methods=["GET", "POST"])
+def manageKeys():
+  if request.method == "GET":
+    os.chdir('/vagrant/.aws')
+    pems = []
+    for file in glob.glob("*.pem"):
+      pems.append(os.path.splitext(file)[0])
+    return render_template('keys.html', keys=pems, pageTitle="AWS Keys")
+  if request.method == "POST":
+    key = request.form['key']
+    admin = getCreds()
+    aws.connect(admin[0]['access'],admin[0]['secret']).delete_key_pair(key)
+    flash ("Successfully deleted remote key: " + key)
+    if os.path.exists(aws.awsDir() + key + '.pem'):
+      os.remove(aws.awsDir() + key + '.pem')
+    flash ("Successfully deleted local key: " + key + ".pem")
+    return redirect('keys', code=302)
 
 @app.errorhandler(404)
 def page_not_found(error):

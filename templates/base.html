@@ -15,18 +15,16 @@
     <li><a class="color-me-white" href="instances">Manage Instances</a></li>
     <li><a class="color-me-white" href="keys">Manage Keys</a></li>
     <li><a class="color-me-white" href="reservation">Make Reservation</a></li>
-    <li><a class="color-me-white" href="reservation">Setup</a></li>
+    <li><a class="color-me-white" href="setup">Setup</a></li>
   </ul>
-  <div class="container">
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <div class="row color-me-white">
-          {% for message in messages %}
-            {{ message }}<br>
-          {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
-  </div>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul class=flashes>
+        {% for message in messages %}
+        <li class="navbar-text navbar-left">{{ message }}<br></li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
 </div>
 {% endblock %}
