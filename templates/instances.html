@@ -10,8 +10,14 @@
         <th><h3>State</h3></th>
         <th><h3>Instance ID</h3></th>
         <th><h3>Reservation ID</h3></th>
-        <th><!-- <button class='btn btn-primary btn-block' type='submit' value='submit'><span class="glyphicon glyphicon-refresh"></span> Update All</button> --!></th>
-        <th><!-- <button class='btn btn-danger btn-block' type='submit'><span class="glyphicon glyphicon-remove"></span> Terminate All</button> --!></th>
+        <th>
+          <form method="POST">
+            <input id='action' name='action' value='updateAll' type=hidden>
+            <button class='btn btn-primary btn-block' type='submit' value='submit'><span class="glyphicon glyphicon-refresh"></span> Update All</button></form></th>
+        <th>
+          <form method="POST">
+            <input id='action' name='action' value='terminateAll' type=hidden>
+            <button class='btn btn-danger btn-block' type='submit'><span class="glyphicon glyphicon-remove"></span> Terminate All</button></form></th>
       </tr>
     </th>
     <tbody>
