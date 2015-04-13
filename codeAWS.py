@@ -44,7 +44,7 @@ def index():
   #Check for database and create table if not created
   cur = g.db.execute('select name from sqlite_master where type="table" and name="instances";')
   if not cur.fetchone():
-    g.db.execute("create table instances(instance_id, reservation_id, name, public_ip, password, state, key);")
+    g.db.execute("create table instances(instance_id, reservation_id, name, public_ip, password, state, key, type);")
   cur = g.db.execute('select name from sqlite_master where type="table" and name="admins";')
   if not cur.fetchone():
     g.db.execute("create table admins(user, access_key, secret_key);")
@@ -78,7 +78,7 @@ def instances():
         instances = aws.connect(admin[0]['access'],admin[0]['secret']).get_only_instances(instance_ids=[resValue])
         for i in instances: 
           passwd = aws.getPass(admin[0]['access'],admin[0]['secret'], i, aws.awsDir())
-          g.db.execute("update instances set public_ip=?, password=?, state=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.id))
+          g.db.execute("update instances set public_ip=?, password=?, state=?, type=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.instance_type, i.id))
           flash('Instance ' + i.tags['Name'] + ' has been successfully updated')
       g.db.commit()
     if action == "updateAll":
@@ -86,10 +86,11 @@ def instances():
       for i in instances:
         if i.tags['Admin'] == admin[0]['username'] and i.tags['Status'] == 'training':
           passwd = aws.getPass(admin[0]['access'],admin[0]['secret'], i, aws.awsDir())
-          g.db.execute("update instances set public_ip=?, password=?, state=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.id))
+          g.db.execute("update instances set public_ip=?, password=?, state=?, type=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.instance_type, i.id))
           flash('Instance ' + i.tags['Name'] + ' has been successfully updated')
       g.db.commit()
     if action == 'terminate':
+      resValue = request.form['resValue']
       aws.connect(admin[0]['access'],admin[0]['secret']).terminate_instances([resValue])
       g.db.execute("delete from instances where instance_id='%s';" % resValue)
       g.db.commit()
@@ -105,7 +106,7 @@ def instances():
     return redirect('instances', code=302)
   if request.method == "GET":
     cur = g.db.execute('select * from instances;')
-    instances = [dict(hostname=row[2], instance_id=row[0], reservation_id=row[1], public_ip=row[3], password=row[4], state=row[5]) for row in cur.fetchall()]
+    instances = [dict(hostname=row[2], instance_id=row[0], reservation_id=row[1], public_ip=row[3], password=row[4], state=row[5], itype=row[7]) for row in cur.fetchall()]
     return render_template('instances.html', entries=instances, pageTitle="AWS Instances")
 
 @app.route('/reservation', methods=['GET', 'POST'])
@@ -130,7 +131,7 @@ def makeReservation():
     #Write instance information to database and add appropriate tags
     for index, i in enumerate(instances):
       commonName = form.name.data + ':' + str(index) + '_' + res.id
-      g.db.execute("insert into instances values (?,?,?,?,null,?,?)", (i.id, res.id, commonName, i.ip_address, str(i._state), form.name.data))
+      g.db.execute("insert into instances values (?,?,?,?,null,?,?,?)", (i.id, res.id, commonName, i.ip_address, str(i._state), form.name.data, i.instance_type))
       i.add_tag('Name',value=commonName)
       i.add_tag('Admin',value=admin[0]['username'])
       i.add_tag('Status',value='training')
