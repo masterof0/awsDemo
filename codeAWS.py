@@ -56,7 +56,6 @@ def setup():
   if request.method == "GET":
     return render_template('setup.html', form=form, pageTitle="AWS Setup")
   if request.method == "POST":
-#    g.db.execute("delete from admins where user='%s';" % form.username.data)
     g.db.execute("drop table admins")
     g.db.execute("create table admins(user, access_key, secret_key);")
     g.db.execute("insert into admins values (?,?,?)", (form.username.data,form.accessKey.data, form.secretKey.data))
@@ -69,8 +68,7 @@ def instances():
   if request.method == "POST":
     admin = getCreds()
     action = request.form['action']
-#    resType = request.form['resType']
-#    resValue = request.form['resValue']
+# Update individual instances
     if action == 'update':
       resType = request.form['resType']
       resValue = request.form['resValue']
@@ -80,7 +78,7 @@ def instances():
           passwd = aws.getPass(admin[0]['access'],admin[0]['secret'], i, aws.awsDir())
           g.db.execute("update instances set public_ip=?, password=?, state=?, type=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.instance_type, i.id))
           flash('Instance ' + i.tags['Name'] + ' has been successfully updated')
-      g.db.commit()
+# Update all instances
     if action == "updateAll":
       instances = aws.connect(admin[0]['access'],admin[0]['secret']).get_only_instances()
       for i in instances:
@@ -88,13 +86,13 @@ def instances():
           passwd = aws.getPass(admin[0]['access'],admin[0]['secret'], i, aws.awsDir())
           g.db.execute("update instances set public_ip=?, password=?, state=?, type=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.instance_type, i.id))
           flash('Instance ' + i.tags['Name'] + ' has been successfully updated')
-      g.db.commit()
+# Terminate individual instances
     if action == 'terminate':
       resValue = request.form['resValue']
       aws.connect(admin[0]['access'],admin[0]['secret']).terminate_instances([resValue])
       g.db.execute("delete from instances where instance_id='%s';" % resValue)
-      g.db.commit()
       flash('Instance ' + resValue + ' has been successfully terminated')
+# Terminate all instances
     if action == "terminateAll":
       instances = aws.connect(admin[0]['access'],admin[0]['secret']).get_only_instances()
       for i in instances:
@@ -102,7 +100,7 @@ def instances():
           aws.connect(admin[0]['access'],admin[0]['secret']).terminate_instances([i.id])
           g.db.execute("delete from instances where instance_id='%s';" % i.id)
           flash('Instance ' + i.tags['Name'] + ' has been successfully terminated')
-      g.db.commit()
+    g.db.commit()
     return redirect('instances', code=302)
   if request.method == "GET":
     cur = g.db.execute('select * from instances;')
@@ -116,19 +114,19 @@ def makeReservation():
   if request.method == "GET":
     return render_template('reservation.html', form=form, pageTitle="AWS Reservation")
   if request.method == "POST":
-    #Check for existing keys and create if needed
+# Check for existing keys and create if needed
     if aws.connect(admin[0]['access'],admin[0]['secret']).get_key_pair(form.name.data):
       if not os.path.exists(aws.awsDir() + form.name.data + '.pem'): 
         return ("This name is already taken. Please try again with new name")
     else:
       key = aws.connect(admin[0]['access'],admin[0]['secret']).create_key_pair(form.name.data)
       key.save(aws.awsDir())
-    #Create reservations
+# Create reservations
     res = aws.connect(admin[0]['access'],admin[0]['secret']).run_instances('ami-ff21c0bb',max_count=form.num.data, key_name=form.name.data, security_groups=['sg_training'], instance_type=form.iType.data)
     flash("Your reservation id for this defensics request is: " + str(res.id))
     flash("Please note it may take up to 30 minutes for the images to launch and be fully available")
     instances = res.instances
-    #Write instance information to database and add appropriate tags
+ # Write instance information to database and add appropriate tags
     for index, i in enumerate(instances):
       commonName = form.name.data + ':' + str(index) + '_' + res.id
       g.db.execute("insert into instances values (?,?,?,?,null,?,?,?)", (i.id, res.id, commonName, i.ip_address, str(i._state), form.name.data, i.instance_type))
