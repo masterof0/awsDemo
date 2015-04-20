@@ -96,10 +96,11 @@ def instances():
     if action == "terminateAll":
       instances = aws.connect(admin[0]['access'],admin[0]['secret']).get_only_instances()
       for i in instances:
-        if i.tags['Admin'] == admin[0]['username'] and i.tags['Status'] == 'training':
-          aws.connect(admin[0]['access'],admin[0]['secret']).terminate_instances([i.id])
-          g.db.execute("delete from instances where instance_id='%s';" % i.id)
-          flash('Instance ' + i.tags['Name'] + ' has been successfully terminated')
+        if "running" in str(i._state):
+          if i.tags['Admin'] == admin[0]['username'] and i.tags['Status'] == 'training':
+            aws.connect(admin[0]['access'],admin[0]['secret']).terminate_instances([i.id])
+            g.db.execute("delete from instances where instance_id='%s';" % i.id)
+            flash('Instance ' + i.tags['Name'] + ' has been successfully terminated')
     g.db.commit()
     return redirect('instances', code=302)
   if request.method == "GET":
@@ -147,11 +148,28 @@ def manageKeys():
   if request.method == "POST":
     key = request.form['key']
     admin = getCreds()
-    aws.connect(admin[0]['access'],admin[0]['secret']).delete_key_pair(key)
-    flash ("Successfully deleted remote key: " + key)
-    if os.path.exists(aws.awsDir() + key + '.pem'):
-      os.remove(aws.awsDir() + key + '.pem')
-    flash ("Successfully deleted local key: " + key + ".pem")
+
+    def delKey(pem):
+      aws.connect(admin[0]['access'],admin[0]['secret']).delete_key_pair(pem)
+      flash ("Successfully deleted remote key: " + pem)
+      if os.path.exists(aws.awsDir() + pem + '.pem'):
+        os.remove(aws.awsDir() + pem + '.pem')
+      flash ("Successfully deleted local key: " + pem + ".pem")
+
+    if key == 'all':
+      os.chdir('/vagrant/.aws')
+      pems = []
+      for file in glob.glob("*.pem"):
+        pems.append(os.path.splitext(file)[0])
+      for pem in pems:
+        delKey(pem)
+    else:
+      delKey(key)
+#      aws.connect(admin[0]['access'],admin[0]['secret']).delete_key_pair(key)
+#      flash ("Successfully deleted remote key: " + key)
+#      if os.path.exists(aws.awsDir() + key + '.pem'):
+#        os.remove(aws.awsDir() + key + '.pem')
+#      flash ("Successfully deleted local key: " + key + ".pem")
     return redirect('keys', code=302)
 
 @app.errorhandler(404)
