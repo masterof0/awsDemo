@@ -11,11 +11,15 @@
     </div>
     {% endfor %}
     <br><br>
-    <div class="row">
+    {% if keys %}
+      <div class="row">
         <form method="POST">
           <div class="col-xs-2"><input id='key' name='key' value=all type='hidden'><h4></input></div>
           <div class="col-xs-2"><button class='btn btn-danger btn-block' type='submit'><span class="glyphicon glyphicon-remove"></span><span class="glyphicon glyphicon-remove"></span> Delete All Keys</button></div>
         </form>
-    </div>
+      </div>
+    {% else %}
+      <div class="row"><h4> No keys defined</h4></div>
+    {% endif %}
   </div>
 {% endblock %}
