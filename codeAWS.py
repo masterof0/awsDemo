@@ -117,21 +117,21 @@ def makeReservation():
     return render_template('reservation.html', form=form, pageTitle="AWS Reservation")
   if request.method == "POST":
 # Check for existing keys and create if needed
-    if aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).get_key_pair(form.name.data):
-      if not os.path.exists(aws.awsDir() + form.name.data + '.pem'): 
+    if aws.connect(form.iLocation.data,admin[0]['access'],admin[0]['secret']).get_key_pair(form.name.data + '_' + form.iLocation.data):
+      if not os.path.exists(aws.awsDir() + form.name.data + '_' + form.iLocation.data + '.pem'): 
         return ("This name is already taken. Please try again with new name")
     else:
-      key = aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).create_key_pair(form.name.data)
+      key = aws.connect(form.iLocation.data,admin[0]['access'],admin[0]['secret']).create_key_pair(form.name.data + '_' + form.iLocation.data)
       key.save(aws.awsDir())
 # Create reservations
-    res = aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).run_instances('ami-ff21c0bb',max_count=form.num.data, key_name=form.name.data, security_groups=['sg_training'], instance_type=form.iType.data)
+    res = aws.connect(form.iLocation.data,admin[0]['access'],admin[0]['secret']).run_instances('ami-ff21c0bb',max_count=form.num.data, key_name=form.name.data + '_' + form.iLocation.data, security_groups=['sg_training'], instance_type=form.iType.data)
     flash("Your reservation id for this defensics request is: " + str(res.id))
     flash("Please note it may take up to 30 minutes for the images to launch and be fully available")
     instances = res.instances
  # Write instance information to database and add appropriate tags
     for index, i in enumerate(instances):
       commonName = form.name.data + ':' + str(index) + '_' + res.id
-      g.db.execute("insert into instances values (?,?,?,?,null,?,?,?,?)", (i.id, res.id, commonName, i.ip_address, str(i._state), form.name.data, i.instance_type,i.placement))
+      g.db.execute("insert into instances values (?,?,?,?,null,?,?,?,?)", (i.id, res.id, commonName, i.ip_address, str(i._state), form.name.data + '_' + form.iLocation.data, i.instance_type,form.iLocation.data))
       i.add_tag('Name',value=commonName)
       i.add_tag('Admin',value=admin[0]['username'])
       i.add_tag('Status',value='training')
@@ -144,14 +144,15 @@ def manageKeys():
     os.chdir('/vagrant/.aws')
     pems = []
     for file in glob.glob("*.pem"):
-      pems.append(os.path.splitext(file)[0])
+      pems.append(os.path.splitext(file)[0]) 
     return render_template('keys.html', keys=pems, pageTitle="AWS Keys")
   if request.method == "POST":
     key = request.form['key']
     admin = getCreds()
 
     def delKey(pem):
-      aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).delete_key_pair(pem)
+      location = pem.rsplit('_', 1)[1]
+      aws.connect(location,admin[0]['access'],admin[0]['secret']).delete_key_pair(pem)
       flash ("Successfully deleted remote key: " + pem)
       if os.path.exists(aws.awsDir() + pem + '.pem'):
         os.remove(aws.awsDir() + pem + '.pem')
