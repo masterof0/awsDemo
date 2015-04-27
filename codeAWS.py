@@ -24,6 +24,7 @@ class reservation(Form):
   num = IntegerField('num', [validators.Required(), validators.NumberRange(min=1, max=10)])
   iType = SelectField('iType', choices=[('t2.micro', 'T2 Micro (preferred)'), ('t2.medium', 'T2 Medium'), ('m3.xlarge', 'M3 X-Large (training)')])
   name = StringField('name', [validators.Required()])
+  iLocation = SelectField('iLocation', choices=[('us-west-1', 'N California'), ('us-west-2', 'Oregon'), ('us-east-1', 'N Virginia')])
 
 def getCreds():
   cur = g.db.execute('select * from admins;')
@@ -44,7 +45,7 @@ def index():
   #Check for database and create table if not created
   cur = g.db.execute('select name from sqlite_master where type="table" and name="instances";')
   if not cur.fetchone():
-    g.db.execute("create table instances(instance_id, reservation_id, name, public_ip, password, state, key, type);")
+    g.db.execute("create table instances(instance_id, reservation_id, name, public_ip, password, state, key, type, location);")
   cur = g.db.execute('select name from sqlite_master where type="table" and name="admins";')
   if not cur.fetchone():
     g.db.execute("create table admins(user, access_key, secret_key);")
@@ -105,7 +106,7 @@ def instances():
     return redirect('instances', code=302)
   if request.method == "GET":
     cur = g.db.execute('select * from instances;')
-    instances = [dict(hostname=row[2], instance_id=row[0], reservation_id=row[1], public_ip=row[3], password=row[4], state=row[5], itype=row[7]) for row in cur.fetchall()]
+    instances = [dict(hostname=row[2], instance_id=row[0], reservation_id=row[1], public_ip=row[3], password=row[4], state=row[5], itype=row[7], ilocation=row[8]) for row in cur.fetchall()]
     return render_template('instances.html', entries=instances, pageTitle="AWS Instances")
 
 @app.route('/reservation', methods=['GET', 'POST'])
@@ -130,7 +131,7 @@ def makeReservation():
  # Write instance information to database and add appropriate tags
     for index, i in enumerate(instances):
       commonName = form.name.data + ':' + str(index) + '_' + res.id
-      g.db.execute("insert into instances values (?,?,?,?,null,?,?,?)", (i.id, res.id, commonName, i.ip_address, str(i._state), form.name.data, i.instance_type))
+      g.db.execute("insert into instances values (?,?,?,?,null,?,?,?,?)", (i.id, res.id, commonName, i.ip_address, str(i._state), form.name.data, i.instance_type,i.placement))
       i.add_tag('Name',value=commonName)
       i.add_tag('Admin',value=admin[0]['username'])
       i.add_tag('Status',value='training')
@@ -165,11 +166,6 @@ def manageKeys():
         delKey(pem)
     else:
       delKey(key)
-#      aws.connect(admin[0]['access'],admin[0]['secret']).delete_key_pair(key)
-#      flash ("Successfully deleted remote key: " + key)
-#      if os.path.exists(aws.awsDir() + key + '.pem'):
-#        os.remove(aws.awsDir() + key + '.pem')
-#      flash ("Successfully deleted local key: " + key + ".pem")
     return redirect('keys', code=302)
 
 @app.errorhandler(404)
