@@ -1,7 +1,7 @@
 import boto.ec2, os, sqlite3
 
-def connect(access, secret):
-    return boto.ec2.connect_to_region('us-west-1',aws_access_key_id=access,aws_secret_access_key=secret)
+def connect(location, access, secret):
+    return boto.ec2.connect_to_region(location,aws_access_key_id=access,aws_secret_access_key=secret)
 
 def awsDir():
   return "/vagrant/.aws/"

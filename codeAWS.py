@@ -73,14 +73,14 @@ def instances():
       resType = request.form['resType']
       resValue = request.form['resValue']
       if resType == 'instance_id':
-        instances = aws.connect(admin[0]['access'],admin[0]['secret']).get_only_instances(instance_ids=[resValue])
+        instances = aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).get_only_instances(instance_ids=[resValue])
         for i in instances: 
           passwd = aws.getPass(admin[0]['access'],admin[0]['secret'], i, aws.awsDir())
           g.db.execute("update instances set public_ip=?, password=?, state=?, type=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.instance_type, i.id))
           flash('Instance ' + i.tags['Name'] + ' has been successfully updated')
 # Update all instances
     if action == "updateAll":
-      instances = aws.connect(admin[0]['access'],admin[0]['secret']).get_only_instances()
+      instances = aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).get_only_instances()
       for i in instances:
         if i.tags['Admin'] == admin[0]['username'] and i.tags['Status'] == 'training':
           passwd = aws.getPass(admin[0]['access'],admin[0]['secret'], i, aws.awsDir())
@@ -89,16 +89,16 @@ def instances():
 # Terminate individual instances
     if action == 'terminate':
       resValue = request.form['resValue']
-      aws.connect(admin[0]['access'],admin[0]['secret']).terminate_instances([resValue])
+      aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).terminate_instances([resValue])
       g.db.execute("delete from instances where instance_id='%s';" % resValue)
       flash('Instance ' + resValue + ' has been successfully terminated')
 # Terminate all instances
     if action == "terminateAll":
-      instances = aws.connect(admin[0]['access'],admin[0]['secret']).get_only_instances()
+      instances = aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).get_only_instances()
       for i in instances:
         if "running" in str(i._state):
           if i.tags['Admin'] == admin[0]['username'] and i.tags['Status'] == 'training':
-            aws.connect(admin[0]['access'],admin[0]['secret']).terminate_instances([i.id])
+            aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).terminate_instances([i.id])
             g.db.execute("delete from instances where instance_id='%s';" % i.id)
             flash('Instance ' + i.tags['Name'] + ' has been successfully terminated')
     g.db.commit()
@@ -116,14 +116,14 @@ def makeReservation():
     return render_template('reservation.html', form=form, pageTitle="AWS Reservation")
   if request.method == "POST":
 # Check for existing keys and create if needed
-    if aws.connect(admin[0]['access'],admin[0]['secret']).get_key_pair(form.name.data):
+    if aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).get_key_pair(form.name.data):
       if not os.path.exists(aws.awsDir() + form.name.data + '.pem'): 
         return ("This name is already taken. Please try again with new name")
     else:
-      key = aws.connect(admin[0]['access'],admin[0]['secret']).create_key_pair(form.name.data)
+      key = aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).create_key_pair(form.name.data)
       key.save(aws.awsDir())
 # Create reservations
-    res = aws.connect(admin[0]['access'],admin[0]['secret']).run_instances('ami-ff21c0bb',max_count=form.num.data, key_name=form.name.data, security_groups=['sg_training'], instance_type=form.iType.data)
+    res = aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).run_instances('ami-ff21c0bb',max_count=form.num.data, key_name=form.name.data, security_groups=['sg_training'], instance_type=form.iType.data)
     flash("Your reservation id for this defensics request is: " + str(res.id))
     flash("Please note it may take up to 30 minutes for the images to launch and be fully available")
     instances = res.instances
@@ -150,7 +150,7 @@ def manageKeys():
     admin = getCreds()
 
     def delKey(pem):
-      aws.connect(admin[0]['access'],admin[0]['secret']).delete_key_pair(pem)
+      aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).delete_key_pair(pem)
       flash ("Successfully deleted remote key: " + pem)
       if os.path.exists(aws.awsDir() + pem + '.pem'):
         os.remove(aws.awsDir() + pem + '.pem')
