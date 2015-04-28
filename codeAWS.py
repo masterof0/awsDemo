@@ -150,13 +150,13 @@ def manageKeys():
     key = request.form['key']
     admin = getCreds()
 
-    def delKey(pem):
-      location = pem.rsplit('_', 1)[1]
-      aws.connect(location,admin[0]['access'],admin[0]['secret']).delete_key_pair(pem)
-      flash ("Successfully deleted remote key: " + pem)
-      if os.path.exists(aws.awsDir() + pem + '.pem'):
-        os.remove(aws.awsDir() + pem + '.pem')
-      flash ("Successfully deleted local key: " + pem + ".pem")
+#    def delKey(pem):
+#      location = pem.rsplit('_', 1)[1]
+#      aws.connect(location,admin[0]['access'],admin[0]['secret']).delete_key_pair(pem)
+#      flash ("Successfully deleted remote key: " + pem)
+#      if os.path.exists(aws.awsDir() + pem + '.pem'):
+#        os.remove(aws.awsDir() + pem + '.pem')
+#      flash ("Successfully deleted local key: " + pem + ".pem")
 
     if key == 'all':
       os.chdir('/vagrant/.aws')
@@ -164,9 +164,11 @@ def manageKeys():
       for file in glob.glob("*.pem"):
         pems.append(os.path.splitext(file)[0])
       for pem in pems:
-        delKey(pem)
+        aws.delKey(pem, admin)
+        flash ("Successfully deleted key: " + pem)
     else:
-      delKey(key)
+      aws.delKey(key, admin)
+      flash ("Successfully deleted key: " + key)
     return redirect('keys', code=302)
 
 @app.errorhandler(404)
