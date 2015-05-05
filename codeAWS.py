@@ -141,7 +141,7 @@ def makeReservation():
 @app.route('/keys', methods=["GET", "POST"])
 def manageKeys():
   if request.method == "GET":
-    os.chdir('/vagrant/.aws')
+    os.chdir(aws.awsDir())
     pems = []
     for file in glob.glob("*.pem"):
       pems.append(os.path.splitext(file)[0]) 
@@ -159,7 +159,7 @@ def manageKeys():
 #      flash ("Successfully deleted local key: " + pem + ".pem")
 
     if key == 'all':
-      os.chdir('/vagrant/.aws')
+      os.chdir(aws.awsDir())
       pems = []
       for file in glob.glob("*.pem"):
         pems.append(os.path.splitext(file)[0])

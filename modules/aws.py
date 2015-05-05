@@ -1,4 +1,4 @@
-import boto.ec2, os, sqlite3
+import boto.ec2, os, sqlite3, glob
 
 def connect(location, access, secret):
     return boto.ec2.connect_to_region(location,aws_access_key_id=access,aws_secret_access_key=secret)
@@ -11,7 +11,12 @@ def awsDB():
 
 def getPass(access, secret, i, awsDir):
   baseName = i.tags['Name'].split(':')[0]
-  cmd = 'ec2-get-password --region us-west-1 -O ' + access + ' -W ' + secret + ' ' + i.id + ' -k ' + awsDir + baseName + '.pem'
+  os.chdir(awsDir())
+  key = ''
+  for file in glob.glob("*.pem"):
+    if file.startswith(baseName):
+      key = str(file)
+  cmd = 'ec2-get-password --region us-west-1 -O ' + access + ' -W ' + secret + ' ' + i.id + ' -k ' + awsDir() + key
   return os.popen(cmd).read().strip()
 
 def delKey(pem, admin):
