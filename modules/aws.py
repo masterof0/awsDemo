@@ -11,12 +11,12 @@ def awsDB():
 
 def getPass(access, secret, i, awsDir):
   baseName = i.tags['Name'].split(':')[0]
-  os.chdir(awsDir())
+  os.chdir(awsDir)
   key = ''
   for file in glob.glob("*.pem"):
     if file.startswith(baseName):
       key = str(file)
-  cmd = 'ec2-get-password --region us-west-1 -O ' + access + ' -W ' + secret + ' ' + i.id + ' -k ' + awsDir() + key
+  cmd = 'ec2-get-password --region us-west-1 -O ' + access + ' -W ' + secret + ' ' + i.id + ' -k ' + awsDir + key
   return os.popen(cmd).read().strip()
 
 def delKey(pem, admin):
