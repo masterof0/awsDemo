@@ -7,14 +7,22 @@
         <th><h3>Hostname</h3></th>
         <th><h3>Public IP</h3></th>
         <th><h3>Password</h3></th>
-{#        <th><h3>State</h3></th>
-        <th><h3>Instance ID</h3></th>  #}
+        <th><h3>State</h3></th>
+{#        <th><h3>Instance ID</h3></th>  #}
         <th><h3>Instance Type</h3></th>
         <th><h3>Location</h3></th>
         <th>
           <form method="POST">
             <input id='action' name='action' value='updateAll' type=hidden>
             <button class='btn btn-primary btn-block' type='submit' value='submit'><span class="glyphicon glyphicon-refresh"></span> Update All</button></form></th>
+        <th>
+          <form method="POST">
+            <input id='action' name='action' value='startAll' type=hidden>
+            <button class='btn btn-success btn-block' type='submit' value='submit'><span class="glyphicon glyphicon-play"></span> Start All</button></form></th>
+        <th>
+          <form method="POST">
+            <input id='action' name='action' value='stopAll' type=hidden>
+            <button class='btn btn-warning btn-block' type='submit' value='submit'><span class="glyphicon glyphicon-stop"></span> Stop All</button></form></th>
         <th>
           <form method="POST">
             <input id='action' name='action' value='terminateAll' type=hidden>
@@ -27,8 +35,8 @@
         <td>{{entry.hostname}}</td>
         <td>{{entry.public_ip}}</td>
         <td>{{entry.password}}</td>
-{#        <td>{{entry.state}}</td>
-        <td>{{entry.instance_id}}</td>  #}
+        <td>{{entry.state}}</td>
+{#        <td>{{entry.instance_id}}</td>  #}
         <td>{{entry.itype}}</td>
         <td>{{entry.ilocation}}</td>
         <td>
@@ -37,6 +45,18 @@
             <input id='resType' name='resType' value='instance_id' type=hidden>
             <input id='resValue' name='resValue' value={{entry.instance_id}} type=hidden>
             <button class='btn btn-primary btn-block' type='submit'><span class="glyphicon glyphicon-refresh"></span> Update</button></form></td>
+        <td>
+          <form method="POST">
+            <input id='action' name='action' value='start' type=hidden>
+            <input id='resType' name='resType' value='instance_id' type=hidden>
+            <input id='resValue' name='resValue' value={{entry.instance_id}} type=hidden>
+            <button class='btn btn-success btn-block' type='submit'><span class="glyphicon glyphicon-play"></span> Start</button></form></td>
+        <td>
+          <form method="POST">
+            <input id='action' name='action' value='stop' type=hidden>
+            <input id='resType' name='resType' value='instance_id' type=hidden>
+            <input id='resValue' name='resValue' value={{entry.instance_id}} type=hidden>
+            <button class='btn btn-warning btn-block' type='submit'><span class="glyphicon glyphicon-stop"></span> Stop</button></form></td>
         <td>
           <form method="POST">
             <input id='action' name='action' value='terminate' type=hidden>
