@@ -4,7 +4,7 @@ import sqlite3, boto.ec2, os, glob
 from flask import Flask, g, render_template, request, url_for, redirect, flash
 from flask_bootstrap import Bootstrap
 from wtforms import StringField, SelectField, IntegerField, validators
-from flask_wtf import Form 
+from flask_wtf import Form
 from modules import aws
 
 app = Flask(__name__)
@@ -75,7 +75,7 @@ def instances():
       resValue = request.form['resValue']
       if resType == 'instance_id':
         instances = aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).get_only_instances(instance_ids=[resValue])
-        for i in instances: 
+        for i in instances:
           passwd = aws.getPass(admin[0]['access'],admin[0]['secret'], i, aws.awsDir())
           g.db.execute("update instances set public_ip=?, password=?, state=?, type=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.instance_type, i.id))
           flash('Instance ' + i.tags['Name'] + ' has been successfully updated')
@@ -102,6 +102,22 @@ def instances():
             aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).terminate_instances([i.id])
             g.db.execute("delete from instances where instance_id='%s';" % i.id)
             flash('Instance ' + i.tags['Name'] + ' has been successfully terminated')
+# Start individual instances
+    if action == 'start':
+      resValue = request.form['resValue']
+      aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).start_instances([resValue])
+      instances = aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).get_only_instances(instance_ids=[resValue])
+      for i in instances:
+        g.db.execute("update instances set state=? where instance_id=?;", (str(i._state), i.id))
+        flash('Instance ' + resValue + ' has been successfully started')
+# Start individual instances
+    if action == 'stop':
+      resValue = request.form['resValue']
+      aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).stop_instances([resValue])
+      instances = aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).get_only_instances(instance_ids=[resValue])
+      for i in instances:
+        g.db.execute("update instances set state=? where instance_id=?;", (str(i._state), i.id))
+        flash('Instance ' + resValue + ' has been successfully halted')
     g.db.commit()
     return redirect('instances', code=302)
   if request.method == "GET":
@@ -118,7 +134,7 @@ def makeReservation():
   if request.method == "POST":
 # Check for existing keys and create if needed
     if aws.connect(form.iLocation.data,admin[0]['access'],admin[0]['secret']).get_key_pair(form.name.data + '_' + form.iLocation.data):
-      if not os.path.exists(aws.awsDir() + form.name.data + '_' + form.iLocation.data + '.pem'): 
+      if not os.path.exists(aws.awsDir() + form.name.data + '_' + form.iLocation.data + '.pem'):
         return ("This name is already taken. Please try again with new name")
     else:
       key = aws.connect(form.iLocation.data,admin[0]['access'],admin[0]['secret']).create_key_pair(form.name.data + '_' + form.iLocation.data)
@@ -144,7 +160,7 @@ def manageKeys():
     os.chdir(aws.awsDir())
     pems = []
     for file in glob.glob("*.pem"):
-      pems.append(os.path.splitext(file)[0]) 
+      pems.append(os.path.splitext(file)[0])
     return render_template('keys.html', keys=pems, pageTitle="AWS Keys")
   if request.method == "POST":
     key = request.form['key']
