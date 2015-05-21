@@ -69,12 +69,18 @@ def instances():
   if request.method == "POST":
     admin = getCreds()
     action = request.form['action']
-    resValue = request.form['resValue']
+    if request.form['resValue']:
+      resValue = request.form['resValue']
 # Update individual instances
     if action == 'update':
 #      resType = request.form['resType']
 #      resValue = request.form['resValue']
 #      if resType == 'instance_id':
+      instances = aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).get_only_instances(instance_ids=[resValue])
+      for i in instances:
+        passwd = aws.getPass(admin[0]['access'],admin[0]['secret'], i, aws.awsDir())
+        g.db.execute("update instances set public_ip=?, password=?, state=?, type=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.instance_type, i.id))
+        flash('Instance ' + i.tags['Name'] + ' has been successfully updated')
 # Update all instances
     if action == "updateAll":
       instances = aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).get_only_instances()
@@ -83,20 +89,6 @@ def instances():
           passwd = aws.getPass(admin[0]['access'],admin[0]['secret'], i, aws.awsDir())
           g.db.execute("update instances set public_ip=?, password=?, state=?, type=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.instance_type, i.id))
           flash('Instance ' + i.tags['Name'] + ' has been successfully updated')
-# Terminate individual instances
-    if action == 'terminate':
-#      resValue = request.form['resValue']
-      aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).terminate_instances([resValue])
-      g.db.execute("delete from instances where instance_id='%s';" % resValue)
-      flash('Instance ' + resValue + ' has been successfully terminated')
-# Terminate all instances
-    if action == "terminateAll":
-      instances = aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).get_only_instances()
-      for i in instances:
-        if i.tags['Admin'] == admin[0]['username'] and i.tags['Status'] == 'training':
-          aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).terminate_instances([i.id])
-          g.db.execute("delete from instances where instance_id='%s';" % i.id)
-          flash('Instance ' + i.tags['Name'] + ' has been successfully terminated')
 # Start individual instances
     if action == 'start':
 #      resValue = request.form['resValue']
@@ -131,6 +123,20 @@ def instances():
             aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).stop_instances([i.id])
             g.db.execute("update instances set state=? where instance_id=?;", (str(i._state), i.id))
             flash('Instance ' + resValue + ' has been successfully halted')
+# Terminate individual instances
+    if action == 'terminate':
+#      resValue = request.form['resValue']
+      aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).terminate_instances([resValue])
+      g.db.execute("delete from instances where instance_id='%s';" % resValue)
+      flash('Instance ' + resValue + ' has been successfully terminated')
+# Terminate all instances
+    if action == "terminateAll":
+      instances = aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).get_only_instances()
+      for i in instances:
+        if i.tags['Admin'] == admin[0]['username'] and i.tags['Status'] == 'training':
+          aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).terminate_instances([i.id])
+          g.db.execute("delete from instances where instance_id='%s';" % i.id)
+          flash('Instance ' + i.tags['Name'] + ' has been successfully terminated')
     g.db.commit()
     return redirect('instances', code=302)
   if request.method == "GET":
