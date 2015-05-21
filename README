@@ -1,4 +1,5 @@
-launch the script from your vm with 'python codeAWS.py'
+Launch the script from your machine with 'python codeAWS.py'
 
-from a connected browser, access teh UI using http://<ip>:5000/
+From a connected browser, access the UI using http://<ip>:5000/
 
+Jarkko has also created an init script (codeaws.conf) that launches the service on boot. instructions to install are in the file
