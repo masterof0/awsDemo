@@ -97,11 +97,10 @@ def instances():
     if action == "terminateAll":
       instances = aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).get_only_instances()
       for i in instances:
-        if "running" in str(i._state):
-          if i.tags['Admin'] == admin[0]['username'] and i.tags['Status'] == 'training':
-            aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).terminate_instances([i.id])
-            g.db.execute("delete from instances where instance_id='%s';" % i.id)
-            flash('Instance ' + i.tags['Name'] + ' has been successfully terminated')
+        if i.tags['Admin'] == admin[0]['username'] and i.tags['Status'] == 'training':
+          aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).terminate_instances([i.id])
+          g.db.execute("delete from instances where instance_id='%s';" % i.id)
+          flash('Instance ' + i.tags['Name'] + ' has been successfully terminated')
 # Start individual instances
     if action == 'start':
       resValue = request.form['resValue']
@@ -110,7 +109,16 @@ def instances():
       for i in instances:
         g.db.execute("update instances set state=? where instance_id=?;", (str(i._state), i.id))
         flash('Instance ' + resValue + ' has been successfully started')
-# Start individual instances
+# Start all instances
+    if action == "startAll":
+      instances = aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).get_only_instances()
+      for i in instances:
+        if "stopped" in str(i._state):
+          if i.tags['Admin'] == admin[0]['username'] and i.tags['Status'] == 'training':
+            aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).start_instances([i.id])
+            g.db.execute("update instances set state=? where instance_id=?;", (str(i._state), i.id))
+            flash('Instance ' + resValue + ' has been successfully started')
+# Stop individual instances
     if action == 'stop':
       resValue = request.form['resValue']
       aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).stop_instances([resValue])
@@ -118,6 +126,15 @@ def instances():
       for i in instances:
         g.db.execute("update instances set state=? where instance_id=?;", (str(i._state), i.id))
         flash('Instance ' + resValue + ' has been successfully halted')
+# Stop all instances
+    if action == "stopAll":
+      instances = aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).get_only_instances()
+      for i in instances:
+        if "running" in str(i._state):
+          if i.tags['Admin'] == admin[0]['username'] and i.tags['Status'] == 'training':
+            aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).stop_instances([i.id])
+            g.db.execute("update instances set state=? where instance_id=?;", (str(i._state), i.id))
+            flash('Instance ' + resValue + ' has been successfully halted')
     g.db.commit()
     return redirect('instances', code=302)
   if request.method == "GET":
