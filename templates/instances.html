@@ -24,9 +24,26 @@
             <input id='action' name='action' value='stopAll' type=hidden>
             <button class='btn btn-warning btn-block' type='submit' value='submit'><span class="glyphicon glyphicon-stop"></span> Stop All</button></form></th>
         <th>
-          <form method="POST">
-            <input id='action' name='action' value='terminateAll' type=hidden>
-            <button class='btn btn-danger btn-block' type='submit'><span class="glyphicon glyphicon-remove"></span> Terminate All</button></form></th>
+          <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modalTermAll"><span class="glyphicon glyphicon-remove"></span> Terminate All</button>
+
+          <div class="modal fade" id="modalTermAll" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h2 class="modal-title">Terminate All Instances?</h2></div>
+                <div class="modal-body">
+                  This is will result in all instances being halted and deleted from AWS. If you are sure this is what you would like to do, click below
+                </div>
+                <div class="modal-footer">
+                  <form method="POST">
+                    <input id='action' name='action' value='terminateAll' type=hidden>
+                    <button class='btn btn-danger' type='submit'>Terminate All</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </th>
       </tr>
     </th>
     <tbody>
