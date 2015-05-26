@@ -83,7 +83,7 @@ def instances():
     if action == "updateAll":
       instances = aws.connect('us-west-1',admin[0]['access'],admin[0]['secret']).get_only_instances()
       for i in instances:
-        if i.tags['Admin'] == admin[0]['username'] and i.tags['Status'] == 'training':
+        if i.tags['Admin'] == admin[0]['username'] and i.tags['Status'] == 'training' and "running" in str(i._state) :
           passwd = aws.getPass(admin[0]['access'],admin[0]['secret'], i, aws.awsDir())
           g.db.execute("update instances set public_ip=?, password=?, state=?, type=? where instance_id=?;", (i.ip_address, passwd, str(i._state), i.instance_type, i.id))
           flash('Instance ' + i.tags['Name'] + ' has been successfully updated')
