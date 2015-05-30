@@ -11,11 +11,6 @@ app = Flask(__name__)
 app.secret_key = '\xc8`\x1dB\xb9~\xb4w|\xafd\xc9%\xc9\x05\xe5!&\x062\x81h\x81\xb8'
 Bootstrap(app)
 
-#Check for .aws directory and create if needed
-if not os.path.isdir(aws.awsDir()):
-  os.chmod("/vagrant", 0777)
-  os.makedirs(aws.awsDir())
-
 class userSetup(Form):
   username = StringField('username')
   accessKey = StringField('accessKey')
