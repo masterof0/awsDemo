@@ -1,5 +1,7 @@
-Launch the script from your machine with 'python codeAWS.py'
-
 From a connected browser, access the UI using http://<ip>:5000/
 
-Jarkko has also created an init script (codeaws.conf) that launches the service on boot. instructions to install are in the file
+Service is set to start on boot. If, for some reason you need to start/stop it manually, run the following command:
+sudo initctl (start/stop) codeaws
+
+Logs can be found at /var/logs/upstart/codeaws.log
+
