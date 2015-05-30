@@ -13,6 +13,7 @@ Bootstrap(app)
 
 #Check for .aws directory and create if needed
 if not os.path.isdir(aws.awsDir()):
+  os.chmod("/vagrant", 0777)
   os.makedirs(aws.awsDir())
 
 class userSetup(Form):
